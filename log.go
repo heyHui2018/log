@@ -53,6 +53,10 @@ func init() {
 	SetHighlighting(runtime.GOOS != "windows")
 }
 
+type TLog struct {
+	TraceId string
+}
+
 func Logger() *log.Logger {
 	return _log._log
 }
@@ -84,12 +88,20 @@ func Infof(format string, v ...interface{}) {
 	_log.Infof(format, v...)
 }
 
+func (t *TLog) Infof(format string, v ...interface{}) {
+	_log.Infof(t.TraceId+" "+format, v...)
+}
+
 func Debug(v ...interface{}) {
 	_log.Debug(v...)
 }
 
 func Debugf(format string, v ...interface{}) {
 	_log.Debugf(format, v...)
+}
+
+func (t *TLog) Debugf(format string, v ...interface{}) {
+	_log.Debugf(t.TraceId+" "+format, v...)
 }
 
 func Warn(v ...interface{}) {
@@ -100,12 +112,20 @@ func Warnf(format string, v ...interface{}) {
 	_log.Warningf(format, v...)
 }
 
+func (t *TLog) Warnf(format string, v ...interface{}) {
+	_log.Warningf(t.TraceId+" "+format, v...)
+}
+
 func Warning(v ...interface{}) {
 	_log.Warning(v...)
 }
 
 func Warningf(format string, v ...interface{}) {
 	_log.Warningf(format, v...)
+}
+
+func (t *TLog) Warningf(format string, v ...interface{}) {
+	_log.Warningf(t.TraceId+" "+format, v...)
 }
 
 func Error(v ...interface{}) {
@@ -116,12 +136,20 @@ func Errorf(format string, v ...interface{}) {
 	_log.Errorf(format, v...)
 }
 
+func (t *TLog) Errorf(format string, v ...interface{}) {
+	_log.Errorf(t.TraceId+" "+format, v...)
+}
+
 func Fatal(v ...interface{}) {
 	_log.Fatal(v...)
 }
 
 func Fatalf(format string, v ...interface{}) {
 	_log.Fatalf(format, v...)
+}
+
+func (t *TLog) Fatalf(format string, v ...interface{}) {
+	_log.Fatalf(t.TraceId+" "+format, v...)
 }
 
 func SetLevelByString(level string) {
@@ -140,10 +168,6 @@ func SetRotateByHour() {
 	_log.SetRotateByHour()
 }
 
-func SetCallDepth(d int) {
-	_log.SetCallDepth(d)
-}
-
 type logger struct {
 	_log         *log.Logger
 	level        LogLevel
@@ -159,10 +183,6 @@ type logger struct {
 	calldepth int
 
 	lock sync.Mutex
-}
-
-func (l *logger) SetCallDepth(d int) {
-	l.calldepth = d
 }
 
 func (l *logger) SetHighlighting(highlighting bool) {
@@ -298,8 +318,29 @@ func (l *logger) logf(t LogType, format string, v ...interface{}) {
 	} else {
 		s = "[" + logStr + "] " + fmt.Sprintf(format, v...)
 	}
-	l._log.Output(l.calldepth, s)
+	l._log.Output(4, s)
 }
+
+// func (l *logger) logfc(t LogType, format string, calldepth int, v ...interface{}) {
+// 	if l.level|LogLevel(t) != l.level {
+// 		return
+// 	}
+//
+// 	err := l.rotate()
+// 	if err != nil {
+// 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+// 		return
+// 	}
+//
+// 	logStr, logColor := LogTypeToString(t)
+// 	var s string
+// 	if l.highlighting {
+// 		s = "\033" + logColor + "m[" + logStr + "] " + fmt.Sprintf(format, v...) + "\033[0m"
+// 	} else {
+// 		s = "[" + logStr + "] " + fmt.Sprintf(format, v...)
+// 	}
+// 	l._log.Output(calldepth, s)
+// }
 
 func (l *logger) Fatal(v ...interface{}) {
 	l.log(LOG_FATAL, v...)
@@ -342,6 +383,10 @@ func (l *logger) Info(v ...interface{}) {
 func (l *logger) Infof(format string, v ...interface{}) {
 	l.logf(LOG_INFO, format, v...)
 }
+
+// func (l *logger) Infofc(format string, calldepth int, v ...interface{}) {
+// 	l.logfc(LOG_INFO, format, calldepth, v...)
+// }
 
 func StringToLogLevel(level string) LogLevel {
 	switch level {
