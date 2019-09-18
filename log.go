@@ -297,7 +297,7 @@ func (l *logger) log(t LogType, v ...interface{}) {
 	}
 
 	s := fmt.Sprintln(v1...)
-	l._log.Output(l.calldepth, s)
+	l._log.Output(4, s)
 }
 
 func (l *logger) logf(t LogType, format string, v ...interface{}) {
